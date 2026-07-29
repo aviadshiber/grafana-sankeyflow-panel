@@ -65,7 +65,7 @@ jobs:
         run: |
           if [ -f "Magefile.go" ]
           then
-            echo "has-backend=true" >> $GITHUB_OUTPUT
+            echo "has-backend=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Setup Go environment
@@ -100,27 +100,27 @@ jobs:
         run: |
           if [ -f "playwright.config.ts" ]
           then
-            echo "has-e2e=true" >> $GITHUB_OUTPUT
+            echo "has-e2e=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Get plugin metadata
         id: metadata
         run: |
-          sudo apt-get install jq
+          GRAFANA_PLUGIN_ID="$(jq -r .id dist/plugin.json)"
+          GRAFANA_PLUGIN_VERSION="$(jq -r .info.version dist/plugin.json)"
+          GRAFANA_PLUGIN_ARTIFACT="${GRAFANA_PLUGIN_ID}-${GRAFANA_PLUGIN_VERSION}.zip"
 
-          export GRAFANA_PLUGIN_ID=$(cat dist/plugin.json | jq -r .id)
-          export GRAFANA_PLUGIN_VERSION=$(cat dist/plugin.json | jq -r .info.version)
-          export GRAFANA_PLUGIN_ARTIFACT=${GRAFANA_PLUGIN_ID}-${GRAFANA_PLUGIN_VERSION}.zip
-
-          echo "plugin-id=${GRAFANA_PLUGIN_ID}" >> $GITHUB_OUTPUT
-          echo "plugin-version=${GRAFANA_PLUGIN_VERSION}" >> $GITHUB_OUTPUT
-          echo "archive=${GRAFANA_PLUGIN_ARTIFACT}" >> $GITHUB_OUTPUT
+          {
+            echo "plugin-id=${GRAFANA_PLUGIN_ID}"
+            echo "plugin-version=${GRAFANA_PLUGIN_VERSION}"
+            echo "archive=${GRAFANA_PLUGIN_ARTIFACT}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Package plugin
         id: package-plugin
         run: |
-          mv dist ${PLUGIN_ID}
-          zip ${ARCHIVE} ${PLUGIN_ID} -r
+          mv dist "$PLUGIN_ID"
+          zip "$ARCHIVE" "$PLUGIN_ID" -r
         env:
           ARCHIVE: ${{ steps.metadata.outputs.archive }}
           PLUGIN_ID: ${{ steps.metadata.outputs.plugin-id }}
@@ -128,7 +128,7 @@ jobs:
       - name: Check plugin.json
         run: |
           docker run --pull=always \
-            -v $PWD/${ARCHIVE}:/archive.zip \
+            -v "${PWD}/${ARCHIVE}:/archive.zip:ro" \
             grafana/plugin-validator-cli@sha256:bb22c43d5cc5762c19a5119bd27d4337056dddeb03633157b64c38c317106211 -analyzer=metadatavalid /archive.zip
         env:
           ARCHIVE: ${{ steps.metadata.outputs.archive }}

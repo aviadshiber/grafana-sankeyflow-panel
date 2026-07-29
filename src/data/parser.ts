@@ -56,7 +56,11 @@ const frameLength = (frame: DataFrame): number => {
   }
   return length;
 };
-const normalizedName = (name: string) => name.trim().toLowerCase().replace(/[\s-]+/g, '_');
+const normalizedName = (name: string) =>
+  name
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_');
 const text = (value: Value): string | undefined => {
   if (value === null || value === undefined) {
     return undefined;
@@ -82,7 +86,8 @@ const timestamp = (value: Value): number | undefined => {
   }
   return undefined;
 };
-const isMissing = (value: Value) => value === null || value === undefined || (typeof value === 'string' && value.trim() === '');
+const isMissing = (value: Value) =>
+  value === null || value === undefined || (typeof value === 'string' && value.trim() === '');
 const isLastAggregation = (aggregation: Aggregation) => aggregation === 'last' || aggregation === 'lastNotNull';
 const boundedOption = (value: number, hardLimit: number): number =>
   Number.isFinite(value) ? Math.max(0, Math.min(Math.floor(value), hardLimit)) : hardLimit;
@@ -140,7 +145,11 @@ function provenance(frame: DataFrame, index: number, fields: Field[]): RowProven
   return { frameRefId: frame.refId, frameName: frame.name, rowIndex: index, values };
 }
 
-function provenanceFields(frame: DataFrame, preferred: Array<Field | undefined>, diagnostics: GraphDiagnostic[]): Field[] {
+function provenanceFields(
+  frame: DataFrame,
+  preferred: Array<Field | undefined>,
+  diagnostics: GraphDiagnostic[]
+): Field[] {
   const selected: Field[] = [];
   const add = (field: Field | undefined) => {
     if (field && !selected.includes(field) && selected.length < LIMITS.provenanceFields) {
@@ -181,7 +190,13 @@ function acceptedFrames(frames: DataFrame[], diagnostics: GraphDiagnostic[]): Da
     accepted.push(frame);
   }
   if (frames.length > LIMITS.frames) {
-    diagnostic(diagnostics, 'limit-exceeded', 'warning', `Limited ingestion to ${LIMITS.frames} data frames.`, undefined);
+    diagnostic(
+      diagnostics,
+      'limit-exceeded',
+      'warning',
+      `Limited ingestion to ${LIMITS.frames} data frames.`,
+      undefined
+    );
   }
   return accepted;
 }
@@ -214,10 +229,22 @@ function rowsToRead(frame: DataFrame, budget: IngestionBudget, diagnostics: Grap
   return allowed;
 }
 
-function appendEdge(edges: NormalizedEdge[], edge: NormalizedEdge, budget: IngestionBudget, diagnostics: GraphDiagnostic[], frame: DataFrame): boolean {
+function appendEdge(
+  edges: NormalizedEdge[],
+  edge: NormalizedEdge,
+  budget: IngestionBudget,
+  diagnostics: GraphDiagnostic[],
+  frame: DataFrame
+): boolean {
   if (edges.length >= LIMITS.normalizedEdges) {
     if (!budget.edgeLimitReported) {
-      diagnostic(diagnostics, 'limit-exceeded', 'warning', `Limited normalized input to ${LIMITS.normalizedEdges} links.`, frame);
+      diagnostic(
+        diagnostics,
+        'limit-exceeded',
+        'warning',
+        `Limited normalized input to ${LIMITS.normalizedEdges} links.`,
+        frame
+      );
       budget.edgeLimitReported = true;
     }
     return false;
@@ -236,7 +263,12 @@ function configuredMode(options: SankeyFlowOptions, frames: DataFrame[]): 'edges
   return frames.some((frame) => detectField(frame, 'source') && detectField(frame, 'target')) ? 'edges' : 'paths';
 }
 
-function parseEdges(frames: DataFrame[], options: SankeyFlowOptions, diagnostics: GraphDiagnostic[], budget: IngestionBudget): NormalizedEdge[] {
+function parseEdges(
+  frames: DataFrame[],
+  options: SankeyFlowOptions,
+  diagnostics: GraphDiagnostic[],
+  budget: IngestionBudget
+): NormalizedEdge[] {
   const edges: NormalizedEdge[] = [];
   for (const frame of frames) {
     if (budget.remainingRows <= 0 || budget.edgeLimitReported) {
@@ -253,7 +285,13 @@ function parseEdges(frames: DataFrame[], options: SankeyFlowOptions, diagnostics
     };
     for (const role of ['source', 'target', 'value'] as const) {
       if (!fields[role]) {
-        diagnostic(diagnostics, 'missing-field', 'error', `Missing ${role} field in frame '${frame.name ?? frame.refId ?? 'unnamed'}'.`, frame);
+        diagnostic(
+          diagnostics,
+          'missing-field',
+          'error',
+          `Missing ${role} field in frame '${frame.name ?? frame.refId ?? 'unnamed'}'.`,
+          frame
+        );
       }
     }
     if (!fields.source || !fields.target || !fields.value) {
@@ -287,16 +325,24 @@ function parseEdges(frames: DataFrame[], options: SankeyFlowOptions, diagnostics
       if (fields.time && rawTime !== null && rawTime !== undefined && parsedTime === undefined) {
         diagnostic(diagnostics, 'invalid-value', 'warning', 'Time must be a valid timestamp.', frame, rowIndex);
       }
-      if (!appendEdge(edges, {
-        source,
-        target,
-        value,
-        time: parsedTime,
-        nodeGroup: fields.nodeGroup ? text(vectorValue(fields.nodeGroup, rowIndex)) : undefined,
-        linkGroup: fields.linkGroup ? text(vectorValue(fields.linkGroup, rowIndex)) : undefined,
-        label: fields.label ? text(vectorValue(fields.label, rowIndex)) : undefined,
-        provenance: provenance(frame, rowIndex, retainedFields),
-      }, budget, diagnostics, frame)) {
+      if (
+        !appendEdge(
+          edges,
+          {
+            source,
+            target,
+            value,
+            time: parsedTime,
+            nodeGroup: fields.nodeGroup ? text(vectorValue(fields.nodeGroup, rowIndex)) : undefined,
+            linkGroup: fields.linkGroup ? text(vectorValue(fields.linkGroup, rowIndex)) : undefined,
+            label: fields.label ? text(vectorValue(fields.label, rowIndex)) : undefined,
+            provenance: provenance(frame, rowIndex, retainedFields),
+          },
+          budget,
+          diagnostics,
+          frame
+        )
+      ) {
         break;
       }
     }
@@ -308,17 +354,21 @@ function inferStages(frame: DataFrame, options: SankeyFlowOptions): Field[] {
   if (options.pathFields.stages.length) {
     return options.pathFields.stages.map((name) => fieldByName(frame, name)).filter((field): field is Field => !!field);
   }
-  const reserved = new Set([
-    options.pathFields.value,
-    options.pathFields.time,
-  ].filter(Boolean).map((name) => normalizedName(name!)));
+  const reserved = new Set(
+    [options.pathFields.value, options.pathFields.time].filter(Boolean).map((name) => normalizedName(name!))
+  );
   return frame.fields.filter((field) => {
     const name = normalizedName(field.name);
     return !reserved.has(name) && field.type !== FieldType.number && field.type !== FieldType.time;
   });
 }
 
-function parsePaths(frames: DataFrame[], options: SankeyFlowOptions, diagnostics: GraphDiagnostic[], budget: IngestionBudget): NormalizedEdge[] {
+function parsePaths(
+  frames: DataFrame[],
+  options: SankeyFlowOptions,
+  diagnostics: GraphDiagnostic[],
+  budget: IngestionBudget
+): NormalizedEdge[] {
   const edges: NormalizedEdge[] = [];
   for (const frame of frames) {
     if (budget.remainingRows <= 0 || budget.edgeLimitReported) {
@@ -332,7 +382,13 @@ function parsePaths(frames: DataFrame[], options: SankeyFlowOptions, diagnostics
       continue;
     }
     if (!valueField) {
-      diagnostic(diagnostics, 'missing-field', 'error', `Missing value field in frame '${frame.name ?? frame.refId ?? 'unnamed'}'.`, frame);
+      diagnostic(
+        diagnostics,
+        'missing-field',
+        'error',
+        `Missing value field in frame '${frame.name ?? frame.refId ?? 'unnamed'}'.`,
+        frame
+      );
       continue;
     }
     const retainedFields = provenanceFields(frame, [...stages, valueField, timeField], diagnostics);
@@ -352,7 +408,14 @@ function parsePaths(frames: DataFrame[], options: SankeyFlowOptions, diagnostics
         .map((field, stage) => ({ name: text(vectorValue(field, rowIndex)), stage }))
         .filter((entry): entry is { name: string; stage: number } => !!entry.name);
       if (present.length < 2) {
-        diagnostic(diagnostics, 'invalid-row', 'warning', 'A path needs at least two non-empty stages.', frame, rowIndex);
+        diagnostic(
+          diagnostics,
+          'invalid-row',
+          'warning',
+          'A path needs at least two non-empty stages.',
+          frame,
+          rowIndex
+        );
         continue;
       }
       const rawTime = timeField ? vectorValue(timeField, rowIndex) : undefined;
@@ -366,15 +429,23 @@ function parsePaths(frames: DataFrame[], options: SankeyFlowOptions, diagnostics
         if (previous.name === current.name && previous.stage === current.stage) {
           continue;
         }
-        if (!appendEdge(edges, {
-          source: previous.name,
-          target: current.name,
-          value,
-          sourceStage: previous.stage,
-          targetStage: current.stage,
-          time: parsedTime,
-          provenance: provenance(frame, rowIndex, retainedFields),
-        }, budget, diagnostics, frame)) {
+        if (
+          !appendEdge(
+            edges,
+            {
+              source: previous.name,
+              target: current.name,
+              value,
+              sourceStage: previous.stage,
+              targetStage: current.stage,
+              time: parsedTime,
+              provenance: provenance(frame, rowIndex, retainedFields),
+            },
+            budget,
+            diagnostics,
+            frame
+          )
+        ) {
           break;
         }
       }
@@ -439,9 +510,14 @@ function hasCycle(links: SankeyGraphLink[]): boolean {
   const active = new Set<string>();
   const seen = new Set<string>();
   const visit = (node: string): boolean => {
-    if (active.has(node)) {return true;}
-    if (seen.has(node)) {return false;}
-    seen.add(node); active.add(node);
+    if (active.has(node)) {
+      return true;
+    }
+    if (seen.has(node)) {
+      return false;
+    }
+    seen.add(node);
+    active.add(node);
     const cycle = (graph.get(node) ?? []).some(visit);
     active.delete(node);
     return cycle;
@@ -525,30 +601,64 @@ export function buildGraph(
   const topN = boundedOption(options.interaction.topN, LIMITS.renderLinks);
   if (topN > 0 && links.length > topN) {
     links = links.sort((a, b) => b.value - a.value).slice(0, topN);
-    diagnostic(diagnostics, 'limit-exceeded', 'warning', `Limited links to top ${topN}.`, undefined, undefined, diagnosticScope);
+    diagnostic(
+      diagnostics,
+      'limit-exceeded',
+      'warning',
+      `Limited links to top ${topN}.`,
+      undefined,
+      undefined,
+      diagnosticScope
+    );
   }
   const maxLinks = boundedOption(options.performance.maxLinks, LIMITS.renderLinks);
   if (links.length > maxLinks) {
     links = links.slice(0, maxLinks);
-    diagnostic(diagnostics, 'limit-exceeded', 'warning', `Limited links to ${maxLinks}.`, undefined, undefined, diagnosticScope);
+    diagnostic(
+      diagnostics,
+      'limit-exceeded',
+      'warning',
+      `Limited links to ${maxLinks}.`,
+      undefined,
+      undefined,
+      diagnosticScope
+    );
   }
   let nodes = [...new Set(links.flatMap((link) => [link.source, link.target]))].map((id): SankeyGraphNode => ({
-    id, name: details.get(id)?.name ?? id, stage: details.get(id)?.stage, group: details.get(id)?.group,
-    value: 0, incoming: [], outgoing: [],
+    id,
+    name: details.get(id)?.name ?? id,
+    stage: details.get(id)?.stage,
+    group: details.get(id)?.group,
+    value: 0,
+    incoming: [],
+    outgoing: [],
   }));
   const maxNodes = boundedOption(options.performance.maxNodes, LIMITS.renderNodes);
   if (nodes.length > maxNodes) {
     const kept = new Set(nodes.slice(0, maxNodes).map((node) => node.id));
     nodes = nodes.slice(0, maxNodes);
     links = links.filter((link) => kept.has(link.source) && kept.has(link.target));
-    diagnostic(diagnostics, 'limit-exceeded', 'warning', `Limited nodes to ${maxNodes}.`, undefined, undefined, diagnosticScope);
+    diagnostic(
+      diagnostics,
+      'limit-exceeded',
+      'warning',
+      `Limited nodes to ${maxNodes}.`,
+      undefined,
+      undefined,
+      diagnosticScope
+    );
   }
   const byId = new Map(nodes.map((node) => [node.id, node]));
   const linksById = new Map(links.map((link) => [link.id, link]));
   for (const link of links) {
-    const source = byId.get(link.source); const target = byId.get(link.target);
-    if (source) {source.outgoing.push(link.id);}
-    if (target) {target.incoming.push(link.id);}
+    const source = byId.get(link.source);
+    const target = byId.get(link.target);
+    if (source) {
+      source.outgoing.push(link.id);
+    }
+    if (target) {
+      target.incoming.push(link.id);
+    }
   }
   for (const node of nodes) {
     const incoming = node.incoming.reduce((sum, id) => sum + (linksById.get(id)?.value ?? 0), 0);
@@ -556,8 +666,20 @@ export function buildGraph(
     node.value = Math.max(incoming, outgoing);
   }
   const cyclic = hasCycle(links);
-  if (cyclic) {diagnostic(diagnostics, 'cycle', 'warning', 'The graph contains a cycle.', undefined, undefined, diagnosticScope);}
-  if (!links.length) {diagnostic(diagnostics, 'no-data', 'info', 'No valid Sankey links were found.', undefined, undefined, diagnosticScope);}
+  if (cyclic) {
+    diagnostic(diagnostics, 'cycle', 'warning', 'The graph contains a cycle.', undefined, undefined, diagnosticScope);
+  }
+  if (!links.length) {
+    diagnostic(
+      diagnostics,
+      'no-data',
+      'info',
+      'No valid Sankey links were found.',
+      undefined,
+      undefined,
+      diagnosticScope
+    );
+  }
   return { nodes, links, total: links.reduce((sum, link) => sum + link.value, 0), diagnostics, cyclic };
 }
 
@@ -566,11 +688,17 @@ interface PlaybackBucket {
   edges: NormalizedEdge[];
 }
 
-function selectPlaybackBuckets(edges: NormalizedEdge[], options: SankeyFlowOptions, diagnostics: GraphDiagnostic[]): PlaybackBucket[] {
+function selectPlaybackBuckets(
+  edges: NormalizedEdge[],
+  options: SankeyFlowOptions,
+  diagnostics: GraphDiagnostic[]
+): PlaybackBucket[] {
   const bucketSize = Math.max(1, Number.isFinite(options.playback.bucketSizeMs) ? options.playback.bucketSizeMs : 1);
   const buckets = new Map<number, NormalizedEdge[]>();
   for (const edge of edges) {
-    if (edge.time === undefined) {continue;}
+    if (edge.time === undefined) {
+      continue;
+    }
     const timestamp = Math.floor(edge.time / bucketSize) * bucketSize;
     const bucket = buckets.get(timestamp);
     if (bucket) {
@@ -581,7 +709,13 @@ function selectPlaybackBuckets(edges: NormalizedEdge[], options: SankeyFlowOptio
   }
   const maxFrames = boundedOption(options.playback.maxFrames, LIMITS.playbackFrames);
   if (buckets.size > maxFrames) {
-    diagnostic(diagnostics, 'limit-exceeded', 'warning', `Limited playback to ${maxFrames} frames before graph construction.`, undefined);
+    diagnostic(
+      diagnostics,
+      'limit-exceeded',
+      'warning',
+      `Limited playback to ${maxFrames} frames before graph construction.`,
+      undefined
+    );
   }
   return [...buckets.entries()]
     .sort(([a], [b]) => a - b)
@@ -594,17 +728,25 @@ export function parsePanelData(context: ParseContext): ParsedPanelData {
   const diagnostics: GraphDiagnostic[] = [];
   if (!context.frames.length) {
     diagnostic(diagnostics, 'missing-frame', 'error', 'No data frames were supplied.', undefined);
-    return { graph: buildGraph([], context.options, diagnostics), frames: [], mode: configuredMode(context.options, []) };
+    return {
+      graph: buildGraph([], context.options, diagnostics),
+      frames: [],
+      mode: configuredMode(context.options, []),
+    };
   }
   const frames = acceptedFrames(context.frames, diagnostics);
   const mode = configuredMode(context.options, frames);
   const budget: IngestionBudget = { remainingRows: LIMITS.totalRows, edgeLimitReported: false };
-  const edges = mode === 'edges'
-    ? parseEdges(frames, context.options, diagnostics, budget)
-    : parsePaths(frames, context.options, diagnostics, budget);
+  const edges =
+    mode === 'edges'
+      ? parseEdges(frames, context.options, diagnostics, budget)
+      : parsePaths(frames, context.options, diagnostics, budget);
   const valueName = mode === 'edges' ? context.options.edgeFields.value : context.options.pathFields.value;
-  const valueField = frames.map((frame) => detectField(frame, 'value', valueName)).find((field): field is Field => !!field);
-  const buckets = context.options.playback.mode === 'playback' ? selectPlaybackBuckets(edges, context.options, diagnostics) : [];
+  const valueField = frames
+    .map((frame) => detectField(frame, 'value', valueName))
+    .find((field): field is Field => !!field);
+  const buckets =
+    context.options.playback.mode === 'playback' ? selectPlaybackBuckets(edges, context.options, diagnostics) : [];
   const graph = buildGraph(edges, context.options, diagnostics);
   const playbackFrames = buckets.map(({ timestamp, edges: bucket }) => ({
     timestamp,
