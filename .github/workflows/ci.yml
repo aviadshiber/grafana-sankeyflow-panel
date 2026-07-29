@@ -22,14 +22,22 @@ jobs:
       plugin-version: ${{ steps.metadata.outputs.plugin-version }}
       has-e2e: ${{ steps.check-for-e2e.outputs.has-e2e }}
       has-backend: ${{ steps.check-for-backend.outputs.has-backend }}
-    env:
-      GRAFANA_ACCESS_POLICY_TOKEN: ${{ secrets.GRAFANA_ACCESS_POLICY_TOKEN }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
+      - name: Verify npm registry and lockfile
+        run: |
+          set -euo pipefail
+          test "$(npm config get registry)" = "https://registry.npmjs.org/"
+          bad_urls="$(jq -r '.. | objects | .resolved? // empty' package-lock.json | grep -Ev '^https://registry\.npmjs\.org/' || true)"
+          if [ -n "$bad_urls" ]; then
+            echo 'package-lock.json contains a non-public or non-HTTPS resolved URL:' >&2
+            echo "$bad_urls" >&2
+            exit 1
+          fi
       - name: Setup Node.js environment
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '22'
           cache: 'npm'
@@ -43,6 +51,8 @@ jobs:
         run: npm run lint
       - name: Unit tests
         run: npm run test:ci
+      - name: Agent skill fixture tests
+        run: npm run test:fixtures
       - name: Build frontend
         run: npm run build
       - name: React compatibility scan
@@ -60,7 +70,7 @@ jobs:
 
       - name: Setup Go environment
         if: steps.check-for-backend.outputs.has-backend == 'true'
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version-file: go.mod
 
@@ -93,10 +103,6 @@ jobs:
             echo "has-e2e=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Sign plugin
-        run: npm run sign
-        if: ${{ env.GRAFANA_ACCESS_POLICY_TOKEN != '' }}
-
       - name: Get plugin metadata
         id: metadata
         run: |
@@ -123,19 +129,19 @@ jobs:
         run: |
           docker run --pull=always \
             -v $PWD/${ARCHIVE}:/archive.zip \
-            grafana/plugin-validator-cli -analyzer=metadatavalid /archive.zip
+            grafana/plugin-validator-cli@sha256:bb22c43d5cc5762c19a5119bd27d4337056dddeb03633157b64c38c317106211 -analyzer=metadatavalid /archive.zip
         env:
           ARCHIVE: ${{ steps.metadata.outputs.archive }}
 
       - name: Archive Build
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: ${{ steps.metadata.outputs.plugin-id }}-${{ steps.metadata.outputs.plugin-version }}
           path: ${{ steps.metadata.outputs.plugin-id }}
           retention-days: 5
 
       - name: Archive SBOM
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: ${{ steps.metadata.outputs.plugin-id }}-${{ steps.metadata.outputs.plugin-version }}-sbom
           path: sbom.cdx.json
@@ -151,13 +157,13 @@ jobs:
       matrix: ${{ steps.resolve-versions.outputs.matrix }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
 
       - name: Resolve Grafana E2E versions
         id: resolve-versions
-        uses: grafana/plugin-actions/e2e-version@e2e-version/v2.0.0
+        uses: grafana/plugin-actions/e2e-version@73cd57e848b81e75e3c17697e6701c9fa1404bcc # e2e-version/v2.0.0
 
   playwright-tests:
     needs: [resolve-versions, build]
@@ -169,12 +175,12 @@ jobs:
     name: e2e test ${{ matrix.GRAFANA_IMAGE.name }}@${{ matrix.GRAFANA_IMAGE.VERSION }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
 
       - name: Download plugin
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           path: dist
           name: ${{ needs.build.outputs.plugin-id }}-${{ needs.build.outputs.plugin-version }}
@@ -184,8 +190,19 @@ jobs:
         run: |
           chmod +x ./dist/gpx_*
 
+      - name: Verify npm registry and lockfile
+        run: |
+          set -euo pipefail
+          test "$(npm config get registry)" = "https://registry.npmjs.org/"
+          bad_urls="$(jq -r '.. | objects | .resolved? // empty' package-lock.json | grep -Ev '^https://registry\.npmjs\.org/' || true)"
+          if [ -n "$bad_urls" ]; then
+            echo 'package-lock.json contains a non-public or non-HTTPS resolved URL:' >&2
+            echo "$bad_urls" >&2
+            exit 1
+          fi
+
       - name: Setup Node.js environment
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '22'
           cache: 'npm'
@@ -199,7 +216,7 @@ jobs:
           ANONYMOUS_AUTH_ENABLED=false DEVELOPMENT=false GRAFANA_VERSION=${{ matrix.GRAFANA_IMAGE.VERSION }} GRAFANA_IMAGE=${{ matrix.GRAFANA_IMAGE.NAME }} docker compose up -d
 
       - name: Wait for grafana server
-        uses: grafana/plugin-actions/wait-for-grafana@wait-for-grafana/v1.0.2
+        uses: grafana/plugin-actions/wait-for-grafana@c8ad89b7d81f8cb9967bb65e444d85f5b3d7c674 # wait-for-grafana/v1.0.2
         with:
           url: http://localhost:3000/login
 
@@ -217,7 +234,7 @@ jobs:
 
       - name: Upload Playwright report
         if: ${{ always() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: playwright-${{ matrix.GRAFANA_IMAGE.NAME }}-${{ matrix.GRAFANA_IMAGE.VERSION }}
           path: |

@@ -2,19 +2,26 @@ name: Create Plugin Update
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 0 1 * *' # run once a month on the 1st day
 
-# To use this workflow please create a fine-grained personal access token for your repository with:
-# `contents: read and write`
-# `pull requests: read and write`
-# `workflows: read and write`
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: create-plugin-update
+  cancel-in-progress: false
+
+# The monthly schedule is intentionally disabled. Run this workflow manually
+# after reviewing the proposed dependency/configuration update. It uses the
+# short-lived repository token rather than a persistent PAT.
 
 jobs:
   release:
+    name: Create plugin update (manual)
+    environment: dependency-update
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: grafana/plugin-actions/create-plugin-update@create-plugin-update/v2.0.1
+      - uses: grafana/plugin-actions/create-plugin-update@244c3bc9c6eb94bc1dd6458ade2462499bbf0f5b # create-plugin-update/v2.0.1
         with:
-          # Make sure to save the token in your repository secrets as `GH_PAT_TOKEN`
-          token: ${{ secrets.GH_PAT_TOKEN }}
+          token: ${{ github.token }}

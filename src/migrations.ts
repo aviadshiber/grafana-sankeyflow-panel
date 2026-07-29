@@ -2,6 +2,7 @@ import type { PanelMigrationHandler } from '@grafana/data';
 import {
   defaultOptions,
   OPTIONS_SCHEMA_VERSION,
+  SUPPORTED_COLOR_MODES,
   type AccessibilityOptions,
   type Aggregation,
   type DataMode,
@@ -26,35 +27,6 @@ const sortModes = ['auto', 'name', 'value', 'input'] as const;
 const timeModes = ['snapshot', 'playback'] as const satisfies readonly TimeMode[];
 const renderers = ['auto', 'svg', 'hybrid'] as const;
 const reduceMotionModes = ['system', 'always', 'never'] as const;
-const colorModes = [
-  'categorical',
-  'source',
-  'target',
-  'fixed',
-  'thresholds',
-  'palette-classic',
-  'palette-classic-by-name',
-  'palette-saturated',
-  'palette-colorblind',
-  'continuous-GrYlRd',
-  'continuous-RdYlGr',
-  'continuous-BlYlRd',
-  'continuous-YlRd',
-  'continuous-BlPu',
-  'continuous-YlBl',
-  'continuous-blues',
-  'continuous-reds',
-  'continuous-greens',
-  'continuous-purples',
-  'continuous-viridis',
-  'continuous-magma',
-  'continuous-plasma',
-  'continuous-inferno',
-  'continuous-cividis',
-  'shades',
-  'gradient',
-] as const;
-
 function isRecord(value: unknown): value is UnknownRecord {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -102,11 +74,13 @@ function numberValue(value: unknown, fallback: number, min: number, max: number)
 }
 
 function optionalStringValue(value: unknown, fallback: string | undefined): string | undefined {
-  return typeof value === 'string' && value.length > 0 ? value : fallback;
+  const normalized = typeof value === 'string' ? value.trim() : '';
+  return normalized.length > 0 ? normalized : fallback;
 }
 
 function stringValue(value: unknown, fallback: string): string {
-  return typeof value === 'string' && value.length > 0 ? value : fallback;
+  const normalized = typeof value === 'string' ? value.trim() : '';
+  return normalized.length > 0 ? normalized : fallback;
 }
 
 function stringArrayValue(value: unknown, fallback: readonly string[]): string[] {
@@ -114,23 +88,19 @@ function stringArrayValue(value: unknown, fallback: readonly string[]): string[]
     return [...fallback];
   }
 
-  return value.filter((item): item is string => typeof item === 'string' && item.length > 0);
+  return value
+    .filter((item): item is string => typeof item === 'string')
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
 }
 
 function colorModeValue(value: unknown): DisplayOptions['colorMode'] {
-  return typeof value === 'string' && (colorModes as readonly string[]).includes(value)
-    ? (value as DisplayOptions['colorMode'])
-    : defaultOptions.display.colorMode;
+  return enumValue(value, SUPPORTED_COLOR_MODES, defaultOptions.display.colorMode);
 }
 
 function migrateEdgeFields(root: UnknownRecord): EdgeFieldMapping {
   const nested = recordValue(root.edgeFields);
-  const fields: EdgeFieldMapping = {
-    tooltipFields: stringArrayValue(
-      pickValue(root, nested, 'tooltipFields', ['edgeTooltipFields']),
-      defaultOptions.edgeFields.tooltipFields
-    ),
-  };
+  const fields: EdgeFieldMapping = {};
   const source = optionalStringValue(
     pickValue(root, nested, 'source', ['sourceField']),
     defaultOptions.edgeFields.source
@@ -182,10 +152,6 @@ function migratePathFields(root: UnknownRecord): PathFieldMapping {
     stages: stringArrayValue(
       pickValue(root, nested, 'stages', ['stageFields', 'pathStages']),
       defaultOptions.pathFields.stages
-    ),
-    tooltipFields: stringArrayValue(
-      pickValue(root, nested, 'tooltipFields', ['pathTooltipFields']),
-      defaultOptions.pathFields.tooltipFields
     ),
     scopeNodesByStage: booleanValue(
       pickValue(root, nested, 'scopeNodesByStage', ['scopePathNodesByStage']),
@@ -342,7 +308,7 @@ export function migrateSankeyFlowOptions(savedOptions: unknown): SankeyFlowOptio
 
   return {
     schemaVersion: OPTIONS_SCHEMA_VERSION,
-    dataMode: enumValue(root.dataMode ?? root.mode, dataModes, defaultOptions.dataMode),
+    dataMode: enumValue(pickValue(root, {}, 'dataMode', ['mode']), dataModes, defaultOptions.dataMode),
     aggregation: enumValue(root.aggregation, aggregations, defaultOptions.aggregation),
     edgeFields: migrateEdgeFields(root),
     pathFields: migratePathFields(root),

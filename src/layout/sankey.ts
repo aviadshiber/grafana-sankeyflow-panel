@@ -119,6 +119,10 @@ export function layoutSankey(graph: SankeyGraph, size: SankeyLayoutSize, options
     };
   }
 
+  if (graph.links.length > 0 && !graph.links.some((link) => Number.isFinite(link.value) && link.value > 0)) {
+    throw new Error('Cannot lay out a Sankey graph without a positive total flow.');
+  }
+
   const input = toLayoutInput(graph);
   const engineSize = options.direction === 'top-to-bottom' ? { width: height, height: width } : { width, height };
   const laidOut = circular ? layoutCircular(input, engineSize, options) : layoutDag(input, engineSize, options);
@@ -291,8 +295,8 @@ function compareText(left: string, right: string): number {
 }
 
 function validateDimension(value: number, name: string): number {
-  if (!Number.isFinite(value) || value < 0) {
-    throw new RangeError(`Sankey layout ${name} must be a finite non-negative number.`);
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new RangeError(`Sankey layout ${name} must be a finite positive number.`);
   }
   return value;
 }

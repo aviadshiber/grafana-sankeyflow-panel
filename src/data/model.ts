@@ -2,6 +2,7 @@ import type { DataFrame, Field, TimeRange } from '@grafana/data';
 import type { SankeyFlowOptions } from '../types';
 
 export type DiagnosticSeverity = 'info' | 'warning' | 'error';
+export type DiagnosticScope = 'global' | 'frame';
 
 export interface GraphDiagnostic {
   code:
@@ -15,6 +16,8 @@ export interface GraphDiagnostic {
     | 'limit-exceeded'
     | 'no-data';
   severity: DiagnosticSeverity;
+  /** Global diagnostics describe parsed input; frame diagnostics describe one playback graph. */
+  scope: DiagnosticScope;
   message: string;
   frameRefId?: string;
   rowIndex?: number;
@@ -30,7 +33,8 @@ export interface RowProvenance {
 export interface NormalizedEdge {
   source: string;
   target: string;
-  value: number;
+  /** Undefined is retained only for the final null row of `last` aggregations. */
+  value?: number;
   sourceStage?: number;
   targetStage?: number;
   time?: number;
@@ -77,7 +81,8 @@ export interface ParsedPanelData {
   graph: SankeyGraph;
   frames: PlaybackFrame[];
   mode: 'edges' | 'paths';
-  valueField?: Field<number>;
+  /** Grafana may represent numeric values as string fields, so do not promise a numeric Field here. */
+  valueField?: Field;
 }
 
 export interface ParseContext {
@@ -85,4 +90,3 @@ export interface ParseContext {
   options: SankeyFlowOptions;
   timeRange?: TimeRange;
 }
-

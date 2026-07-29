@@ -33,7 +33,7 @@ describe('parsePanelData', () => {
   it('honors explicit mappings and reports invalid input without poisoning valid rows', () => {
     const config = options();
     config.dataMode = 'edges';
-    config.edgeFields = { source: 'upstream', target: 'downstream', value: 'count', tooltipFields: [] };
+    config.edgeFields = { source: 'upstream', target: 'downstream', value: 'count' };
     const result = parsePanelData({
       frames: [frame({ upstream: ['A', '', 'C'], downstream: ['B', 'B', 'D'], count: [2, 5, -1] })],
       options: config,
@@ -46,7 +46,7 @@ describe('parsePanelData', () => {
   it('turns nullable path stages into links between nearest present stages with scoped IDs', () => {
     const config = options();
     config.dataMode = 'paths';
-    config.pathFields = { stages: ['first', 'middle', 'last'], value: 'weight', tooltipFields: [], scopeNodesByStage: true };
+    config.pathFields = { stages: ['first', 'middle', 'last'], value: 'weight', scopeNodesByStage: true };
     const result = parsePanelData({ frames: [frame({ first: ['A'], middle: [null], last: ['A'], weight: [4] })], options: config });
 
     expect(result.graph.links).toEqual([expect.objectContaining({ source: '0\u0000A', target: '2\u0000A', value: 4 })]);
@@ -66,6 +66,33 @@ describe('parsePanelData', () => {
     expect(result.graph.links[0].value).toBe(expected);
   });
 
+  it('aggregates duplicate rows without retaining unbounded provenance', () => {
+    const values = Array.from({ length: 101 }, () => 1);
+    const result = parsePanelData({
+      frames: [frame({ source: values.map(() => 'A'), target: values.map(() => 'B'), value: values })],
+      options: options(),
+    });
+
+    expect(result.graph.links).toEqual([expect.objectContaining({ source: 'A', target: 'B', value: 101 })]);
+    expect(result.graph.links[0].rows).toHaveLength(100);
+    expect(result.graph.diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'limit-exceeded', message: expect.stringContaining('provenance') }),
+    ]));
+  });
+
+  it('applies minimumValue after duplicate aggregation and then applies graph caps', () => {
+    const config = options();
+    config.interaction.minimumValue = 10;
+    config.interaction.topN = 1;
+    const result = parsePanelData({
+      frames: [frame({ source: ['A', 'A', 'C'], target: ['B', 'B', 'D'], value: [6, 6, 11] })],
+      options: config,
+    });
+
+    expect(result.graph.links).toEqual([expect.objectContaining({ source: 'A', target: 'B', value: 12 })]);
+    expect(result.graph.diagnostics).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'limit-exceeded' })]));
+  });
+
   it('buckets playback timestamps, detects cycles, and enforces frame limits', () => {
     const config = options();
     config.playback = { ...config.playback, mode: 'playback', bucketSizeMs: 1000, maxFrames: 1 };
@@ -79,10 +106,33 @@ describe('parsePanelData', () => {
     expect(result.frames[0].timestamp).toBe(0);
   });
 
+  it('caps timestamp buckets before graph construction and keeps parser diagnostics global', () => {
+    const config = options();
+    config.playback = { ...config.playback, mode: 'playback', bucketSizeMs: 1_000, maxFrames: 2 };
+    const result = parsePanelData({
+      frames: [frame({
+        source: ['A', 'A', 'A', 'A', 'A', ''],
+        target: ['B', 'B', 'B', 'B', 'B', 'B'],
+        value: [1, 1, 1, 1, 1, 1],
+        time: [0, 1_000, 2_000, 3_000, 4_000, 5_000],
+      })],
+      options: config,
+    });
+
+    expect(result.frames.map((item) => item.timestamp)).toEqual([0, 1_000]);
+    expect(result.graph.diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'invalid-row', scope: 'global' }),
+      expect.objectContaining({ code: 'limit-exceeded', message: expect.stringContaining('before graph construction'), scope: 'global' }),
+    ]));
+    expect(result.frames.flatMap((item) => item.graph.diagnostics)).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ scope: 'global' }),
+    ]));
+  });
+
   it('accepts ISO timestamps and can intentionally share path nodes across stages', () => {
     const config = options();
     config.dataMode = 'paths';
-    config.pathFields = { stages: ['one', 'two'], value: 'value', time: 'when', tooltipFields: [], scopeNodesByStage: false };
+    config.pathFields = { stages: ['one', 'two'], value: 'value', time: 'when', scopeNodesByStage: false };
     config.playback = { ...config.playback, mode: 'playback', bucketSizeMs: 1_000 };
     const result = parsePanelData({
       frames: [frame({ one: ['A'], two: ['B'], value: [1], when: ['2026-01-01T00:00:00.000Z'] })],
@@ -93,13 +143,61 @@ describe('parsePanelData', () => {
     expect(result.frames[0].timestamp).toBe(Date.parse('2026-01-01T00:00:00.000Z'));
   });
 
+  it('accepts numeric strings without claiming the Grafana value field is numeric', () => {
+    const result = parsePanelData({
+      frames: [frame({ source: ['A', 'A'], target: ['B', 'B'], value: ['2.5', '3.5'] })],
+      options: options(),
+    });
+
+    expect(result.graph.links[0].value).toBe(6);
+    expect(result.valueField?.type).toBe(FieldType.string);
+  });
+
+  it('distinguishes last from lastNotNull when the final duplicate value is null', () => {
+    const last = options();
+    last.aggregation = 'last';
+    const lastNotNull = options();
+    lastNotNull.aggregation = 'lastNotNull';
+    const input = [frame({ source: ['A', 'A'], target: ['B', 'B'], value: [5, null] })];
+
+    expect(parsePanelData({ frames: input, options: last }).graph.links).toEqual([]);
+    expect(parsePanelData({ frames: input, options: lastNotNull }).graph.links).toEqual([
+      expect.objectContaining({ source: 'A', target: 'B', value: 5 }),
+    ]);
+  });
+
+  it('enforces ingestion and diagnostic ceilings with explicit diagnostics', () => {
+    const rowCount = 50_001;
+    const result = parsePanelData({
+      frames: [frame({
+        source: Array.from({ length: rowCount }, () => 'A'),
+        target: Array.from({ length: rowCount }, () => 'B'),
+        value: Array.from({ length: rowCount }, () => 1),
+      })],
+      options: options(),
+    });
+    const invalidRows = parsePanelData({
+      frames: [frame({ source: Array.from({ length: 1_001 }, () => ''), target: Array.from({ length: 1_001 }, () => 'B'), value: Array.from({ length: 1_001 }, () => 1) })],
+      options: options(),
+    });
+
+    expect(result.graph.links[0].value).toBe(50_000);
+    expect(result.graph.diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'limit-exceeded', message: expect.stringContaining('50,000 rows') }),
+    ]));
+    expect(invalidRows.graph.diagnostics).toHaveLength(1_000);
+    expect(invalidRows.graph.diagnostics.at(-1)).toEqual(expect.objectContaining({
+      code: 'limit-exceeded',
+      message: expect.stringContaining('Stopped collecting diagnostics'),
+    }));
+  });
+
   it('drops links that collapse into self-links when stages intentionally share node identity', () => {
     const config = options();
     config.dataMode = 'paths';
     config.pathFields = {
       stages: ['one', 'two', 'three'],
       value: 'value',
-      tooltipFields: [],
       scopeNodesByStage: false,
     };
     const result = parsePanelData({

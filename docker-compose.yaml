@@ -3,5 +3,14 @@ services:
     extends:
       file: .config/docker-compose-base.yaml
       service: grafana
+    build:
+      args:
+        # Anonymous access is disabled by default. Opt in explicitly for local
+        # development when an Admin session is useful.
+        anonymous_auth_enabled: ${ANONYMOUS_AUTH_ENABLED:-false}
+    ports: !override
+      - '127.0.0.1:3000:3000/tcp'
     environment:
       GF_PLUGINS_ENABLE_ALPHA: 'true'
+      GF_AUTH_ANONYMOUS_ENABLED: ${ANONYMOUS_AUTH_ENABLED:-false}
+      GF_AUTH_ANONYMOUS_ORG_ROLE: ${ANONYMOUS_AUTH_ORG_ROLE:-Viewer}

@@ -21,10 +21,10 @@ SankeyFlow is a Grafana panel for exploring how measured volume moves through st
 
 ## Compatibility
 
-| Grafana version | Support tier |
-| --- | --- |
-| 11.5.2–11.6.10 | Compatibility tier: supported contract with focused validation; report version-specific issues with reproduction details. |
-| 11.6.11 and later | Full support tier: primary development and verification target. |
+| Grafana version   | Support tier                                                                                                              |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 11.5.2–11.6.10    | Compatibility tier: supported contract with focused validation; report version-specific issues with reproduction details. |
+| 11.6.11 and later | Full support tier: primary development and verification target.                                                           |
 
 SankeyFlow is a panel plugin, not a data source. Your Grafana instance must be able to query the data source that provides the fields described in the [data model](docs/data-model.md).
 
@@ -32,7 +32,7 @@ SankeyFlow is a panel plugin, not a data source. Your Grafana instance must be a
 
 ### Try it locally with Docker or Colima
 
-Requirements: Node.js 22+, npm 11+, and Docker. On macOS, Docker Desktop or [Colima](https://github.com/abiosoft/colima) can provide the Docker runtime.
+Requirements: Node.js 22+, npm 11+, and Docker Compose 2.24.4+. On macOS, Docker Desktop or [Colima](https://github.com/abiosoft/colima) can provide the Docker runtime.
 
 ```bash
 npm install
@@ -81,6 +81,22 @@ The panel maps fields explicitly where possible; `dataMode: auto` detects edge o
 SankeyFlow is community-oriented OSS. Contributions, issue reports, and documentation improvements are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md), [GOVERNANCE.md](GOVERNANCE.md), and the [Code of Conduct](CODE_OF_CONDUCT.md) before participating.
 
 If you want SankeyFlow signed or listed in the Grafana community catalog, see [Community signing and catalog requests](docs/deployment.md#community-signing-and-catalog-requests). Catalog inclusion and signing are external review processes and are not implied by using this repository.
+
+## Adapting this project
+
+Forks are welcome, but a Grafana plugin's identity is a coordinated public contract. Before
+publishing a fork:
+
+1. Choose the owning Grafana Cloud organization and replace
+   `aviadshiber-sankeyflow-panel` everywhere before the first catalog submission.
+2. Update `package.json`, `src/plugin.json`, catalog README links, badges, screenshots, and the
+   Playwright asset-prefix check to the new repository and plugin ID.
+3. Update the bundled `.agents/skills/use-sankeyflow` references if the data contract changes.
+4. Run unit tests, fixture validation, the provisioned Playwright suite, a production build, and
+   Grafana's plugin validator before creating a release.
+
+Do not rename an ID after Grafana has published it; use a new plugin ID for a separately owned
+distribution.
 
 ## License
 

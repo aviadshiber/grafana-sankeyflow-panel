@@ -18,6 +18,13 @@ All notable changes to SankeyFlow are recorded here. Entries describe the public
 - OSS documentation for schemas, deployment, architecture, support, signing, governance, and contribution.
 - Compatibility guidance for Grafana 11.5.2 and full support guidance for Grafana 11.6.11 and later.
 
+### Security
+
+- Bounded frame, row, field, provenance, diagnostic, node, link, playback, canvas, and hybrid-overlay work for untrusted query results.
+- Restricted clipboard output to an explicit normalized selection contract.
+- Isolated release signing from pull-request CI, pinned workflow actions, attached release SBOMs, and enforced public HTTPS dependency URLs.
+- Bound the local Grafana development service to loopback with anonymous access disabled by default.
+
 ### Status
 
 - SankeyFlow remains alpha. The documented contract is the baseline for compatibility, while undocumented implementation details may change.

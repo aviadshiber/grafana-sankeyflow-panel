@@ -1,17 +1,16 @@
-import { FieldColorModeId, PanelPlugin } from '@grafana/data';
+import { PanelPlugin } from '@grafana/data';
 import { SankeyFlowPanel } from './components/SankeyFlowPanel';
 import { migrationHandler } from './migrations';
-import { defaultOptions, type SankeyFlowOptions } from './types';
+import { defaultOptions, SUPPORTED_COLOR_MODES, type SankeyFlowOptions } from './types';
 
-const colorModeOptions: Array<{ value: SankeyFlowOptions['display']['colorMode']; label: string }> = [
-  { value: 'categorical', label: 'Categorical' },
-  { value: 'source', label: 'Source node' },
-  { value: 'target', label: 'Target node' },
-  { value: 'fixed', label: 'Fixed color' },
-  ...Object.values(FieldColorModeId)
-    .filter((value) => value !== FieldColorModeId.Fixed)
-    .map((value) => ({ value, label: value })),
-];
+const colorModeLabels: Record<(typeof SUPPORTED_COLOR_MODES)[number], string> = {
+  categorical: 'Categorical',
+  source: 'Source node',
+  target: 'Target node',
+  fixed: 'Fixed color',
+};
+
+export const COLOR_MODE_OPTIONS = SUPPORTED_COLOR_MODES.map((value) => ({ value, label: colorModeLabels[value] }));
 
 const enumOptions = <const T extends string>(options: ReadonlyArray<{ value: T; label: string }>) => ({
   settings: { options: [...options] },
@@ -103,14 +102,6 @@ export const plugin = new PanelPlugin<SankeyFlowOptions>(SankeyFlowPanel)
         showIf: (options) => options.dataMode !== 'paths',
       })
       .addStringArray({
-        path: 'edgeFields.tooltipFields',
-        name: 'Tooltip fields',
-        description: 'Additional fields shown in link tooltips.',
-        category: ['Data', 'Edge fields'],
-        defaultValue: defaultOptions.edgeFields.tooltipFields,
-        showIf: (options) => options.dataMode !== 'paths',
-      })
-      .addStringArray({
         path: 'pathFields.stages',
         name: 'Stage fields',
         description: 'Fields that define the ordered path stages.',
@@ -132,14 +123,6 @@ export const plugin = new PanelPlugin<SankeyFlowOptions>(SankeyFlowPanel)
         description: 'Optional field used for playback buckets.',
         category: ['Data', 'Path fields'],
         defaultValue: defaultOptions.pathFields.time,
-        showIf: (options) => options.dataMode !== 'edges',
-      })
-      .addStringArray({
-        path: 'pathFields.tooltipFields',
-        name: 'Tooltip fields',
-        description: 'Additional fields shown in path tooltips.',
-        category: ['Data', 'Path fields'],
-        defaultValue: defaultOptions.pathFields.tooltipFields,
         showIf: (options) => options.dataMode !== 'edges',
       })
       .addBooleanSwitch({
@@ -261,7 +244,7 @@ export const plugin = new PanelPlugin<SankeyFlowOptions>(SankeyFlowPanel)
               path: 'colorMode',
               name: 'Color mode',
               defaultValue: defaultOptions.display.colorMode,
-              settings: { options: colorModeOptions },
+              settings: { options: COLOR_MODE_OPTIONS },
             })
             .addColorPicker({
               path: 'fixedColor',

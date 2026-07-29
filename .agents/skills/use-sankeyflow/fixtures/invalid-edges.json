@@ -1,0 +1,7 @@
+{
+  "mode": "edges",
+  "rows": [
+    { "source": "Ads", "target": "Checkout", "value": 42, "time": "not-a-timestamp" },
+    { "source": "Checkout", "target": "Checkout", "value": -1 }
+  ]
+}

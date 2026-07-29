@@ -6,17 +6,19 @@ This document defines the input and interaction contract for SankeyFlow. Grafana
 
 Each row represents one directed edge:
 
-| Field | Required | Type | Meaning |
-| --- | --- | --- | --- |
-| `source` | yes | string | Source node identifier. |
-| `target` | yes | string | Destination node identifier. |
-| `value` | yes | number | Non-negative flow magnitude. |
-| `time` | no | timestamp/number | Timestamp used for playback bucketing. |
-| `nodeGroup` | no | string | Group used for node styling or filtering. |
-| `linkGroup` | no | string | Group used for link styling or filtering. |
-| `label` | no | string | Human-readable label for the edge. |
+| Field       | Required | Type                 | Meaning                                   |
+| ----------- | -------- | -------------------- | ----------------------------------------- |
+| `source`    | yes      | string               | Source node identifier.                   |
+| `target`    | yes      | string               | Destination node identifier.              |
+| `value`     | yes      | number               | Non-negative flow magnitude.              |
+| `time`      | no       | ISO timestamp/number | Timestamp used for playback bucketing.    |
+| `nodeGroup` | no       | string               | Group used for node styling or filtering. |
+| `linkGroup` | no       | string               | Group used for link styling or filtering. |
+| `label`     | no       | string               | Human-readable label for the edge.        |
 
-Additional columns may be selected as tooltip fields. Their original row values remain available as provenance for inspection and data links.
+The panel does not expose a configurable tooltip-field option. Copying a selected link emits only
+its normalized ID, source, target, value, and optional label; unrelated source-frame fields and
+internal provenance are never copied.
 
 Example:
 
@@ -33,11 +35,11 @@ Rows with missing endpoints, non-numeric values, negative values, or non-finite 
 
 Path mode represents one complete route through ordered stages. Configure one or more stage fields plus an optional value and time field:
 
-| Field | Required | Type | Meaning |
-| --- | --- | --- | --- |
-| `stage_1` … `stage_n` | yes | string | Ordered node values at each stage. |
-| `value` | yes | number | Non-negative path magnitude. |
-| `time` | no | timestamp/number | Timestamp used for playback bucketing. |
+| Field                 | Required | Type                 | Meaning                                |
+| --------------------- | -------- | -------------------- | -------------------------------------- |
+| `stage_1` … `stage_n` | yes      | string               | Ordered node values at each stage.     |
+| `value`               | yes      | number               | Non-negative path magnitude.           |
+| `time`                | no       | ISO timestamp/number | Timestamp used for playback bucketing. |
 
 Example:
 
@@ -76,7 +78,11 @@ Rows without a time value participate in snapshot mode but are excluded from pla
 
 ## Selection and accessibility
 
-Selecting a node or link can highlight its connected path, expose provenance, and copy a stable text representation when copy is enabled. Search and minimum-value/top-N controls affect presentation only; they do not change the query result.
+Selecting a node or link can highlight its connected path, show normalized details, and copy a
+stable allowlisted representation when copy is enabled. Search and minimum-value/top-N controls
+affect presentation only; they do not change the query result.
+
+Coloring supports four modes: categorical, source node, target node, and fixed color. Other Grafana field color modes are not supported by this renderer and are migrated to the default categorical mode.
 
 Enable the accessible table for a non-visual representation of nodes, links, values, and diagnostics. High-contrast and reduced-motion settings should be treated as user accessibility preferences, not merely display options.
 

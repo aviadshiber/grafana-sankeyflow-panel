@@ -7,6 +7,7 @@ import argparse
 import json
 import math
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +25,18 @@ def nonempty_string(value: Any) -> bool:
 
 def finite_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+
+
+def timestamp(value: Any) -> bool:
+    if finite_number(value):
+        return True
+    if not isinstance(value, str) or not value.strip():
+        return False
+    try:
+        datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    return True
 
 
 def validate(path: Path) -> dict[str, Any]:
@@ -58,8 +71,8 @@ def validate(path: Path) -> dict[str, Any]:
             errors.append(error(index, "value must be a finite number"))
         elif value < 0:
             errors.append(error(index, "value must be non-negative"))
-        if "time" in row and not finite_number(row["time"]):
-            errors.append(error(index, "time must be a finite number when present"))
+        if "time" in row and not timestamp(row["time"]):
+            errors.append(error(index, "time must be a finite number or ISO timestamp when present"))
 
         if mode == "edges":
             source, target = row.get("source"), row.get("target")

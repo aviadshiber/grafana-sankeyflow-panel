@@ -1,0 +1,7 @@
+{
+  "mode": "paths",
+  "rows": [
+    { "stages": ["Only one stage"], "value": 1 },
+    { "stages": ["Visit", "Paid"], "value": 2, "time": "2026-99-99T00:00:00Z" }
+  ]
+}

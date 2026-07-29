@@ -1,5 +1,3 @@
-import type { FieldColorModeId } from '@grafana/data';
-
 export const OPTIONS_SCHEMA_VERSION = 1;
 
 export type DataMode = 'auto' | 'edges' | 'paths';
@@ -9,6 +7,8 @@ export type NodeAlignment = 'justify' | 'left' | 'right' | 'center';
 export type SortMode = 'auto' | 'name' | 'value' | 'input';
 export type RendererMode = 'auto' | 'svg' | 'hybrid';
 export type TimeMode = 'snapshot' | 'playback';
+export const SUPPORTED_COLOR_MODES = ['categorical', 'source', 'target', 'fixed'] as const;
+export type ColorMode = (typeof SUPPORTED_COLOR_MODES)[number];
 
 export interface EdgeFieldMapping {
   source?: string;
@@ -18,14 +18,12 @@ export interface EdgeFieldMapping {
   nodeGroup?: string;
   linkGroup?: string;
   label?: string;
-  tooltipFields: string[];
 }
 
 export interface PathFieldMapping {
   stages: string[];
   value?: string;
   time?: string;
-  tooltipFields: string[];
   scopeNodesByStage: boolean;
 }
 
@@ -47,7 +45,7 @@ export interface DisplayOptions {
   showStageHeaders: boolean;
   linkOpacity: number;
   dimOpacity: number;
-  colorMode: FieldColorModeId | 'categorical' | 'source' | 'target' | 'fixed';
+  colorMode: ColorMode;
   fixedColor: string;
   usePatterns: boolean;
 }
@@ -101,12 +99,9 @@ export const defaultOptions: SankeyFlowOptions = {
   schemaVersion: OPTIONS_SCHEMA_VERSION,
   dataMode: 'auto',
   aggregation: 'sum',
-  edgeFields: {
-    tooltipFields: [],
-  },
+  edgeFields: {},
   pathFields: {
     stages: [],
-    tooltipFields: [],
     scopeNodesByStage: true,
   },
   layout: {

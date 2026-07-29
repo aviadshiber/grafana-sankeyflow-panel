@@ -82,6 +82,20 @@ describe('layoutSankey', () => {
     ).toBe(true);
   });
 
+  it('rejects cyclic graphs when circular links are disabled', () => {
+    const input = graph([node('a'), node('b')], [link('a-b', 'a', 'b'), link('b-a', 'b', 'a')], true);
+
+    expect(() => layoutSankey(input, { width: 360, height: 180 }, { ...layoutOptions, enableCircular: false })).toThrow(
+      'circular links are disabled'
+    );
+  });
+
+  it('rejects non-empty all-zero graphs before a layout engine can create invalid geometry', () => {
+    const input = graph([node('a', 0), node('b', 0)], [link('a-b', 'a', 'b', 0)]);
+
+    expect(() => layoutSankey(input, { width: 360, height: 180 }, layoutOptions)).toThrow('positive total flow');
+  });
+
   it('returns an empty scene without calling a layout engine', () => {
     const scene = layoutSankey(graph([], []), { width: 320, height: 120 }, layoutOptions);
 
@@ -113,5 +127,46 @@ describe('layoutSankey', () => {
       expect(topToBottomNode.y0).toBeCloseTo(horizontalNode.x0);
       expect(topToBottomNode.y1).toBeCloseTo(horizontalNode.x1);
     }
+  });
+
+  it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])('rejects invalid layout dimensions (%p)', (dimension) => {
+    expect(() =>
+      layoutSankey(
+        graph([node('a'), node('b')], [link('a-b', 'a', 'b')]),
+        { width: dimension, height: 180 },
+        layoutOptions
+      )
+    ).toThrow(RangeError);
+  });
+
+  it.each(['left', 'right', 'center', 'justify'] as const)('supports the %s alignment branch', (alignment) => {
+    const scene = layoutSankey(
+      graph(
+        [node('source'), node('middle'), node('sink'), node('shortcut')],
+        [
+          link('source-middle', 'source', 'middle'),
+          link('middle-sink', 'middle', 'sink'),
+          link('shortcut-sink', 'shortcut', 'sink'),
+        ]
+      ),
+      { width: 360, height: 180 },
+      { ...layoutOptions, alignment }
+    );
+
+    expect(scene.nodes).toHaveLength(4);
+    expect(scene.nodes.flatMap((item) => [item.x0, item.x1, item.y0, item.y1]).every(Number.isFinite)).toBe(true);
+  });
+
+  it.each(['auto', 'input', 'name', 'value'] as const)('supports the %s node-sort branch', (sort) => {
+    const scene = layoutSankey(
+      graph(
+        [node('zeta', 1), node('alpha', 9), node('sink', 10)],
+        [link('zeta-sink', 'zeta', 'sink', 1), link('alpha-sink', 'alpha', 'sink', 9)]
+      ),
+      { width: 360, height: 180 },
+      { ...layoutOptions, sort }
+    );
+
+    expect(scene.links.every((item) => Number.isFinite(item.width) && item.width > 0)).toBe(true);
   });
 });

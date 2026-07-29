@@ -7,23 +7,65 @@ on:
     tags:
       - 'v*' # Run workflow on version tags, e.g. v1.0.0.
 
-permissions: read-all
-
 jobs:
   release:
+    environment: release-signing
     permissions:
       contents: write
       id-token: write
       attestations: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          fetch-depth: 0
           persist-credentials: false
 
-      - uses: grafana/plugin-actions/build-plugin@build-plugin/v1.0.2
+      - name: Verify release tag and source
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_TYPE}" = "tag"
+          test "${RELEASE_TAG#v}" = "$(node -p "require('./package.json').version")"
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          test "$(git rev-list -n 1 "${RELEASE_TAG}^{commit}")" = "$RELEASE_SHA"
+          git merge-base --is-ancestor "$RELEASE_SHA" refs/remotes/origin/main
+
+      - name: Verify npm registry and lockfile
+        run: |
+          set -euo pipefail
+          test "$(npm config get registry)" = "https://registry.npmjs.org/"
+          bad_urls="$(jq -r '.. | objects | .resolved? // empty' package-lock.json | grep -Ev '^https://registry\.npmjs\.org/' || true)"
+          if [ -n "$bad_urls" ]; then
+            echo 'package-lock.json contains a non-public or non-HTTPS resolved URL:' >&2
+            echo "$bad_urls" >&2
+            exit 1
+          fi
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate CycloneDX SBOM
+        run: npm run sbom
+
+      - uses: grafana/plugin-actions/build-plugin@62c2d322b176c9b104fae6b300029e08d0a0ee8e # build-plugin/v1.0.2
+        with:
+          # GRAFANA_ACCESS_POLICY_TOKEN is an environment secret. The official
+          # action exposes it only to its nested signing step.
           policy_token: ${{ secrets.GRAFANA_ACCESS_POLICY_TOKEN }}
           attestation: true
           use_changelog_generator: true
           token: ${{ github.token }}
+
+      - name: Attach SBOM to draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" sbom.cdx.json --clobber
