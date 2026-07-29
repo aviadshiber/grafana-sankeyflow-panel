@@ -1,50 +1,64 @@
-<!-- This README file is going to be the one displayed on the Grafana.com website for your plugin. Uncomment and replace the content here before publishing.
+# SankeyFlow
 
-Remove any remaining comments before publishing as these may be displayed on Grafana.com -->
+SankeyFlow turns ordinary Grafana data frames into interactive Sankey diagrams.
+Use it for service traffic, energy distribution, conversion funnels, financial
+flows, state transitions, and any other directed movement between categories.
 
-# Sankeyflow
+![SankeyFlow edge diagram and panel configuration](https://raw.githubusercontent.com/aviadshiber/grafana-sankeyflow-panel/main/src/img/sankeyflow-overview.png)
 
-<!-- To help maximize the impact of your README and improve usability for users, we propose the following loose structure:
+## What it supports
 
-**BEFORE YOU BEGIN**
-- Ensure all links are absolute URLs so that they will work when the README is displayed within Grafana and Grafana.com
-- Be inspired ✨
-  - [grafana-polystat-panel](https://github.com/grafana/grafana-polystat-panel)
-  - [volkovlabs-variable-panel](https://github.com/volkovlabs/volkovlabs-variable-panel)
+- Explicit `source → target` edge data and ordered multi-stage paths
+- Circular flows and feedback loops
+- Snapshot and time-bucketed playback
+- Search, keyboard selection, path highlighting, and copyable details
+- SVG rendering and a hybrid Canvas/SVG mode for larger graphs
+- High-contrast patterns, reduced motion, and an optional accessible data table
+- Configurable aggregation, layout, limits, colors, labels, and field mappings
 
-**ADD SOME BADGES**
+## Required data
 
-Badges convey useful information at a glance for users whether in the Catalog or viewing the source code. You can use the generator on [Shields.io](https://shields.io/badges/dynamic-json-badge) together with the Grafana.com API
-to create dynamic badges that update automatically when you publish a new version to the marketplace.
+For edge mode, return one row per directed link:
 
-- For the URL parameter use `https://grafana.com/api/plugins/your-plugin-id`.
-- Example queries:
-  - Downloads: `$.downloads`
-  - Catalog Version: `$.version`
-  - Grafana Dependency: `$.grafanaDependency`
-  - Signature Type: `$.versionSignatureType`
-- Optionally, for the logo parameter use `grafana`.
+```text
+source,target,value[,time][,nodeGroup][,linkGroup][,label]
+Checkout,Payment,120,2026-07-29T10:00:00Z,commerce,success,authorized
+```
 
-Full example: ![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?logo=grafana&query=$.version&url=https://grafana.com/api/plugins/grafana-polystat-panel&label=Marketplace&prefix=v&color=F47A20)
+For path mode, return one row per ordered journey and map at least two stage
+fields plus a non-negative numeric value:
 
-Consider other [badges](https://shields.io/badges) as you feel appropriate for your project.
+```text
+stage_1,stage_2,stage_3,value[,time]
+Visit,Signup,Paid,42,2026-07-29T10:00:00Z
+```
 
-## Overview / Introduction
-Provide one or more paragraphs as an introduction to your plugin to help users understand why they should use it.
+Rows with missing endpoints, invalid or negative values, and self-links are
+reported as diagnostics instead of being silently misrepresented.
 
-Consider including screenshots:
-- in [plugin.json](https://grafana.com/developers/plugin-tools/reference/plugin-json#info) include them as relative links.
-- in the README ensure they are absolute URLs.
+## Get started
 
-## Requirements
-List any requirements or dependencies they may need to run the plugin.
+1. Add a SankeyFlow visualization to a panel.
+2. Query data in edge or path form.
+3. Choose **Auto**, **Edges**, or **Paths** under **Data**.
+4. Map the fields explicitly when their names differ from the examples.
+5. Enable **Playback** only when the query returns a time field.
 
-## Getting Started
-Provide a quick start on how to configure and use the plugin.
+For exact aggregation, playback, circular-flow, and limit semantics, read the
+[data contract](https://github.com/aviadshiber/grafana-sankeyflow-panel/blob/main/docs/data-model.md).
 
-## Documentation
-If your project has dedicated documentation available for users, provide links here. For help in following Grafana's style recommendations for technical documentation, refer to our [Writer's Toolkit](https://grafana.com/docs/writers-toolkit/).
+## Compatibility and support
 
-## Contributing
-Do you want folks to contribute to the plugin or provide feedback through specific means? If so, tell them how!
--->
+SankeyFlow requires Grafana 11.5.2 or newer. Because this release is marked
+alpha, self-managed Grafana administrators must enable alpha plugins. The
+project tests supported versions through Grafana's Playwright plugin test
+matrix.
+
+- [Documentation](https://github.com/aviadshiber/grafana-sankeyflow-panel#readme)
+- [Report a bug](https://github.com/aviadshiber/grafana-sankeyflow-panel/issues/new?template=bug_report.md)
+- [Request a feature](https://github.com/aviadshiber/grafana-sankeyflow-panel/issues/new?template=feature_request.md)
+- [Contribute](https://github.com/aviadshiber/grafana-sankeyflow-panel/blob/main/CONTRIBUTING.md)
+- [Security policy](https://github.com/aviadshiber/grafana-sankeyflow-panel/blob/main/SECURITY.md)
+
+SankeyFlow is open source under the
+[Apache License 2.0](https://github.com/aviadshiber/grafana-sankeyflow-panel/blob/main/LICENSE).

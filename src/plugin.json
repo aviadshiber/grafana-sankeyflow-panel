@@ -7,7 +7,8 @@
     "keywords": ["panel", "sankey", "flow", "network", "energy"],
     "description": "Interactive Sankey diagrams for multi-stage, circular, and time-varying flows from any Grafana data source.",
     "author": {
-      "name": "Aviadshiber"
+      "name": "Aviad Shiber",
+      "url": "https://github.com/aviadshiber"
     },
     "logos": {
       "small": "img/logo.svg",
@@ -17,9 +18,22 @@
       {
         "name": "GitHub",
         "url": "https://github.com/aviadshiber/grafana-sankeyflow-panel"
+      },
+      {
+        "name": "Documentation",
+        "url": "https://github.com/aviadshiber/grafana-sankeyflow-panel#readme"
+      },
+      {
+        "name": "Report an issue",
+        "url": "https://github.com/aviadshiber/grafana-sankeyflow-panel/issues"
       }
     ],
-    "screenshots": [],
+    "screenshots": [
+      {
+        "name": "SankeyFlow edge diagram and panel configuration",
+        "path": "img/sankeyflow-overview.png"
+      }
+    ],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },

@@ -32,6 +32,7 @@ coverage
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 dist/
 artifacts/
+sbom.cdx.json
 work/
 ci/
 

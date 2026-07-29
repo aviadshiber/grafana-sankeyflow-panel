@@ -15,7 +15,9 @@ npm run test:ci
 npm run build
 ```
 
-Use `npm run server` to start Grafana locally and `npm run e2e` for browser-level checks when the environment supports them.
+Use `npm run server` to start Grafana locally and `npm run e2e` for browser-level checks. The
+development Compose override enables alpha plugins because SankeyFlow's metadata intentionally
+reports its current lifecycle state.
 
 ## Documentation contract
 

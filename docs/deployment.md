@@ -26,6 +26,10 @@ Use 11.5.2 for compatibility checks and 11.6.11 or newer for the full-support pa
 3. Confirm the directory name and plugin ID match the release documentation.
 4. Restart Grafana and create a SankeyFlow panel.
 
+Until SankeyFlow reaches beta, self-managed installations must also set
+`[plugins] enable_alpha = true` (or `GF_PLUGINS_ENABLE_ALPHA=true`). Enable this only on Grafana
+instances where administrators have approved alpha plugins.
+
 Do not allow unsigned plugins or disable signature verification globally as a production deployment shortcut. For air-gapped installations, mirror the approved artifact and its verification material through your normal software-supply-chain process.
 
 ## Helm and Kubernetes
@@ -48,6 +52,12 @@ Grafana explicitly permits the first public-plugin submission to be unsigned:
 Grafana reviews it before assigning a signature level.
 
 ### First submission
+
+Before tagging the first public release, confirm that the `aviadshiber` prefix in
+`aviadshiber-sankeyflow-panel` is the slug of the Grafana Cloud organization that will own the
+plugin. Create or select that organization first if needed. The plugin ID becomes a public,
+immutable identifier after publication; change it before the first submission if the owning
+organization uses a different slug.
 
 1. Build and validate the release candidate, including unit, Playwright, accessibility, compatibility-matrix, React compatibility, and plugin-validator checks.
 2. Push a version tag. The release workflow creates the packaged ZIP, SHA1, and provenance attestation in a draft GitHub release.

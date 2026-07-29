@@ -1,6 +1,13 @@
 # SankeyFlow
 
+[![CI](https://github.com/aviadshiber/grafana-sankeyflow-panel/actions/workflows/ci.yml/badge.svg)](https://github.com/aviadshiber/grafana-sankeyflow-panel/actions/workflows/ci.yml)
+[![Security](https://github.com/aviadshiber/grafana-sankeyflow-panel/actions/workflows/security.yml/badge.svg)](https://github.com/aviadshiber/grafana-sankeyflow-panel/actions/workflows/security.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Grafana](https://img.shields.io/badge/Grafana-%3E%3D11.5.2-F46800?logo=grafana)](https://grafana.com/)
+
 SankeyFlow is a Grafana panel for exploring how measured volume moves through stages, systems, and states. It accepts ordinary Grafana data frames and renders interactive Sankey diagrams for direct edge data or multi-stage paths, including circular flows and time-based playback.
+
+![SankeyFlow edge diagram in the Grafana panel editor](src/img/sankeyflow-overview.png)
 
 > **Project status:** SankeyFlow is in active alpha development. The public contract is documented in [`docs/data-model.md`](docs/data-model.md); behavior outside that contract may change before the first stable release.
 
