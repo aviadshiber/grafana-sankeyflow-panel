@@ -45,6 +45,10 @@ jobs:
         run: npm run test:ci
       - name: Build frontend
         run: npm run build
+      - name: React compatibility scan
+        run: npm run react:detect
+      - name: Generate CycloneDX SBOM
+        run: npm run sbom
 
       - name: Check for backend
         id: check-for-backend
@@ -129,6 +133,13 @@ jobs:
           name: ${{ steps.metadata.outputs.plugin-id }}-${{ steps.metadata.outputs.plugin-version }}
           path: ${{ steps.metadata.outputs.plugin-id }}
           retention-days: 5
+
+      - name: Archive SBOM
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.metadata.outputs.plugin-id }}-${{ steps.metadata.outputs.plugin-version }}-sbom
+          path: sbom.cdx.json
+          retention-days: 30
 
   resolve-versions:
     name: Resolve e2e images
