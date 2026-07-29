@@ -1,11 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
   "type": "panel",
-  "name": "Sankeyflow",
+  "name": "SankeyFlow",
   "id": "aviadshiber-sankeyflow-panel",
   "info": {
-    "keywords": ["panel"],
-    "description": "",
+    "keywords": ["panel", "sankey", "flow", "network", "energy"],
+    "description": "Interactive Sankey diagrams for multi-stage, circular, and time-varying flows from any Grafana data source.",
     "author": {
       "name": "Aviadshiber"
     },
@@ -13,13 +13,19 @@
       "small": "img/logo.svg",
       "large": "img/logo.svg"
     },
-    "links": [],
+    "links": [
+      {
+        "name": "GitHub",
+        "url": "https://github.com/aviadshiber/grafana-sankeyflow-panel"
+      }
+    ],
     "screenshots": [],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
   "dependencies": {
-    "grafanaDependency": ">=12.3.0",
+    "grafanaDependency": ">=11.5.2",
     "plugins": []
-  }
+  },
+  "state": "alpha"
 }
