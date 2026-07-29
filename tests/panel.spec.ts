@@ -9,7 +9,9 @@ function isKnownGrafanaNoise(message: string) {
   return (
     message.startsWith('[OFREP] Failed to initialize feature flags:') ||
     message === 'Failed to load resource: net::ERR_CONNECTION_REFUSED' ||
-    message === 'Failed to load resource: the server responded with a status of 503 (Service Unavailable)'
+    message === 'Failed to load resource: the server responded with a status of 503 (Service Unavailable)' ||
+    (message.startsWith('Could not register link extension.') &&
+      message.includes('pluginId: grafana-metricsdrilldown-app'))
   );
 }
 
