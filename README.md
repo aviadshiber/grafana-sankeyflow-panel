@@ -1,117 +1,80 @@
-# Grafana panel plugin template
+# SankeyFlow
 
-This template is a starting point for building a panel plugin for Grafana.
+SankeyFlow is a Grafana panel for exploring how measured volume moves through stages, systems, and states. It accepts ordinary Grafana data frames and renders interactive Sankey diagrams for direct edge data or multi-stage paths, including circular flows and time-based playback.
 
-## What are Grafana panel plugins?
+> **Project status:** SankeyFlow is in active alpha development. The public contract is documented in [`docs/data-model.md`](docs/data-model.md); behavior outside that contract may change before the first stable release.
 
-Panel plugins allow you to add new types of visualizations to your dashboard, such as maps, clocks, pie charts, lists, and more.
+## Highlights
 
-Use panel plugins when you want to do things like visualize data returned by data source queries, navigate between dashboards, or control external systems (such as smart home devices).
+- Edge and path input schemas that work with any Grafana data source.
+- Circular links for feedback loops and return flows.
+- Snapshot and playback modes for time-varying data.
+- Search, selection, path highlighting, copyable details, and optional accessible tables.
+- A compatibility tier for Grafana 11.5.2 and full support for Grafana 11.6.11 and later.
 
-## Getting started
+## Compatibility
 
-### Frontend
+| Grafana version | Support tier |
+| --- | --- |
+| 11.5.2–11.6.10 | Compatibility tier: supported contract with focused validation; report version-specific issues with reproduction details. |
+| 11.6.11 and later | Full support tier: primary development and verification target. |
 
-1. Install dependencies
+SankeyFlow is a panel plugin, not a data source. Your Grafana instance must be able to query the data source that provides the fields described in the [data model](docs/data-model.md).
 
-   ```bash
-   npm install
-   ```
+## Quick start
 
-2. Build plugin in development mode and run in watch mode
+### Try it locally with Docker or Colima
 
-   ```bash
-   npm run dev
-   ```
+Requirements: Node.js 22+, npm 11+, and Docker. On macOS, Docker Desktop or [Colima](https://github.com/abiosoft/colima) can provide the Docker runtime.
 
-3. Build plugin in production mode
+```bash
+npm install
+npm run server
+```
 
-   ```bash
-   npm run build
-   ```
+Open the Grafana URL printed by Compose, create a dashboard, and add a SankeyFlow panel. To run against a specific Grafana version:
 
-4. Run the tests (using Jest)
+```bash
+GRAFANA_VERSION=11.6.11 npm run server
+```
 
-   ```bash
-   # Runs the tests and watches for changes, requires git init first
-   npm run test
+For a local development loop, use `npm run dev` in one terminal and the repository’s Grafana container in another. See [local development](docs/development.md).
 
-   # Exits after running all the tests
-   npm run test:ci
-   ```
+### Install in a self-managed Grafana
 
-5. Spin up a Grafana instance and run the plugin inside it (using Docker)
+Use a signed catalog release for production after Grafana approves the plugin. Install the extracted plugin directory under Grafana’s plugin path and restart Grafana. Unsigned builds are intended only for the scaffolded development environment. See [deployment](docs/deployment.md) for Docker, self-managed, and Helm-oriented guidance.
 
-   ```bash
-   npm run server
-   ```
+## Data and configuration
 
-6. Run the E2E tests (using Playwright)
+Start with one of these shapes:
 
-   ```bash
-   # Spins up a Grafana instance first that we tests against
-   npm run server
+```text
+source,target,value[,time][,nodeGroup][,linkGroup][,label]
+```
 
-   # If you wish to start a certain Grafana version. If not specified will use latest by default
-   GRAFANA_VERSION=11.3.0 npm run server
+or:
 
-   # Starts the tests
-   npm run e2e
-   ```
+```text
+stage_1,stage_2,...,stage_n,value[,time]
+```
 
-7. Run the linter
+The panel maps fields explicitly where possible; `dataMode: auto` detects edge or path input. Values must be finite and non-negative. Complete field definitions, aggregation rules, circular-flow behavior, and playback semantics are in [Data model and panel contract](docs/data-model.md).
 
-   ```bash
-   npm run lint
+## Documentation
 
-   # or
+- [Data model and panel contract](docs/data-model.md)
+- [Architecture](docs/architecture.md)
+- [Deployment](docs/deployment.md)
+- [Development and testing](docs/development.md)
+- [Support](docs/support.md)
+- [Roadmap](ROADMAP.md)
 
-   npm run lint:fix
-   ```
+## Community and governance
 
-# Distributing your plugin
+SankeyFlow is community-oriented OSS. Contributions, issue reports, and documentation improvements are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md), [GOVERNANCE.md](GOVERNANCE.md), and the [Code of Conduct](CODE_OF_CONDUCT.md) before participating.
 
-When distributing a Grafana plugin either within the community or privately the plugin must be signed so the Grafana application can verify its authenticity. This can be done with the `@grafana/sign-plugin` package.
+If you want SankeyFlow signed or listed in the Grafana community catalog, see [Community signing and catalog requests](docs/deployment.md#community-signing-and-catalog-requests). Catalog inclusion and signing are external review processes and are not implied by using this repository.
 
-_Note: It's not necessary to sign a plugin during development. The docker development environment that is scaffolded with `@grafana/create-plugin` caters for running the plugin without a signature._
+## License
 
-## Initial steps
-
-Before signing a plugin please read the Grafana [plugin publishing and signing criteria](https://grafana.com/legal/plugins/#plugin-publishing-and-signing-criteria) documentation carefully.
-
-`@grafana/create-plugin` has added the necessary commands and workflows to make signing and distributing a plugin via the grafana plugins catalog as straightforward as possible.
-
-Before signing a plugin for the first time please consult the Grafana [plugin signature levels](https://grafana.com/legal/plugins/#what-are-the-different-classifications-of-plugins) documentation to understand the differences between the types of signature level.
-
-1. Create a [Grafana Cloud account](https://grafana.com/signup).
-2. Make sure that the first part of the plugin ID matches the slug of your Grafana Cloud account.
-   - _You can find the plugin ID in the `plugin.json` file inside your plugin directory. For example, if your account slug is `acmecorp`, you need to prefix the plugin ID with `acmecorp-`._
-3. Create a Grafana Cloud API key with the `PluginPublisher` role.
-4. Keep a record of this API key as it will be required for signing a plugin
-
-## Signing a plugin
-
-### Using Github actions release workflow
-
-If the plugin is using the github actions supplied with `@grafana/create-plugin` signing a plugin is included out of the box. The [release workflow](./.github/workflows/release.yml) can prepare everything to make submitting your plugin to Grafana as easy as possible. Before being able to sign the plugin however a secret needs adding to the Github repository.
-
-1. Please navigate to "settings > secrets > actions" within your repo to create secrets.
-2. Click "New repository secret"
-3. Name the secret "GRAFANA_API_KEY"
-4. Paste your Grafana Cloud API key in the Secret field
-5. Click "Add secret"
-
-#### Push a version tag
-
-To trigger the workflow we need to push a version tag to github. This can be achieved with the following steps:
-
-1. Run `npm version <major|minor|patch>`
-2. Run `git push origin main --follow-tags`
-
-## Learn more
-
-Below you can find source code for existing app plugins and other related documentation.
-
-- [Basic panel plugin example](https://github.com/grafana/grafana-plugin-examples/tree/master/examples/panel-basic#readme)
-- [`plugin.json` documentation](https://grafana.com/developers/plugin-tools/reference/plugin-json)
-- [How to sign a plugin?](https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin)
+SankeyFlow is licensed under the [Apache License 2.0](LICENSE).
