@@ -21,4 +21,10 @@ python3 .agents/skills/use-sankeyflow/scripts/validate_fixtures.py sample.json
 
 Read errors in row order. A valid fixture proves only the JSON contract; it does not prove Grafana field types, query semantics, or a useful visual result. Compare the validator input with Grafana’s inspected data frame when behavior differs.
 
+Do not turn a negative magnitude positive, replace a malformed timestamp, or
+rewrite a self-link merely to make validation pass. Those changes alter the
+meaning of the data. In a corrected example, either omit the invalid row and
+say so, or leave a clearly marked placeholder and ask the user for the intended
+source value.
+
 For contributors, reproduce with a minimal fixture, add or update a focused test, then run the relevant development checks in [development.md](development.md).

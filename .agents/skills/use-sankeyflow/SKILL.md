@@ -32,7 +32,8 @@ Pass one or more JSON fixtures. Require each fixture to declare `mode` as `edges
 4. Supply a time field only when playback or time bucketing is intended.
 5. Apply `minimumValue`, `topN`, `maxNodes`, `maxLinks`, and `maxFrames` deliberately; document any lossy reduction.
 6. Investigate diagnostics before hiding them with display settings.
-7. For code changes, validate fixtures first, then typecheck, test, lint, and build in proportion to the change.
+7. Never invent a semantic correction for invalid flow data. Remove the row in a clearly labeled example or ask how the source should be repaired.
+8. For code changes, validate fixtures first, then typecheck, test, lint, and build in proportion to the change.
 
 ## Reference loading
 
