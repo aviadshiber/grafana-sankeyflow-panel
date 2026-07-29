@@ -1,0 +1,4 @@
+interface:
+  display_name: "SankeyFlow"
+  short_description: "Build and troubleshoot Sankey dashboards"
+  default_prompt: "Use $use-sankeyflow to validate and troubleshoot this Sankey dashboard data."
