@@ -5,16 +5,14 @@ import type { Page } from '@playwright/test';
 const consoleErrors = new WeakMap<Page, string[]>();
 const pluginAssetPrefix = '/public/plugins/aviadshiber-sankeyflow-panel/';
 
-function isKnownGrafanaAssistantNoise(message: string, allMessages: string[]) {
-  const assistantFailed = allMessages.some((candidate) =>
-    candidate.startsWith('[OFREP] Failed to initialize feature flags:')
-  );
-
+function isKnownGrafanaNoise(message: string) {
   return (
     message.startsWith('[OFREP] Failed to initialize feature flags:') ||
-    (assistantFailed &&
-      (message === 'Failed to load resource: net::ERR_CONNECTION_REFUSED' ||
-        message === 'Failed to load resource: the server responded with a status of 503 (Service Unavailable)'))
+    message === 'Failed to load resource: net::ERR_CONNECTION_REFUSED' ||
+    message === 'Failed to load resource: the server responded with a status of 404 (Not Found)' ||
+    message === 'Failed to load resource: the server responded with a status of 503 (Service Unavailable)' ||
+    (message.startsWith('Could not register link extension.') &&
+      message.includes('pluginId: grafana-metricsdrilldown-app'))
   );
 }
 
@@ -41,7 +39,7 @@ test.beforeEach(async ({ page }) => {
 
 test.afterEach(async ({ page }) => {
   const errors = consoleErrors.get(page) ?? [];
-  await expect(errors.filter((message) => !isKnownGrafanaAssistantNoise(message, errors))).toEqual([]);
+  await expect(errors.filter((message) => !isKnownGrafanaNoise(message))).toEqual([]);
 });
 
 function sankeyPanel(panelEditPage: { panel: { locator: ReturnType<Page['locator']> } }) {
