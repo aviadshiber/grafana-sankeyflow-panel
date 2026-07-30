@@ -17,18 +17,19 @@ The release process keeps the following narrowly scoped, time-bounded exceptions
 upstream update is available or the panel begins to exercise an affected path:
 
 - `brace-expansion` ([GHSA-mh99-v99m-4gvg](https://github.com/advisories/GHSA-mh99-v99m-4gvg))
-  is reached only through legacy `minimatch` consumers in lint and test tooling. The patched major
-  is outside those consumers' declared API range. This dependency tree is not bundled into the
-  plugin, and panel code does not accept user-controlled glob expressions.
+  is reached through legacy `minimatch` consumers in the repository's toolchain dependency graph,
+  including tooling metadata beneath Grafana packages. The patched major is outside those
+  consumers' declared API range. The vulnerable implementation is not bundled into the plugin,
+  and panel code does not accept user-controlled glob expressions.
 - `react-router` ([GHSA-wrjc-x8rr-h8h6](https://github.com/advisories/GHSA-wrjc-x8rr-h8h6) and
   [GHSA-337j-9hxr-rhxg](https://github.com/advisories/GHSA-337j-9hxr-rhxg)) is transitive to
   `@grafana/ui`. Webpack externalizes React Router and Grafana provides it at runtime; SankeyFlow
   does not import it, use navigation, or use server-side hydration.
 
 The UUID advisory [GHSA-w5hq-g745-h8pq](https://github.com/advisories/GHSA-w5hq-g745-h8pq) is
-remediated through `@grafana/react-detect` 0.7.2 and a scoped `uuid` 11.1.1 override for its
-`snyk-nodejs-lockfile-parser` dependency. That parser uses only the retained `uuid.v4` API; the
-`react:detect` check verifies the compatible resolved graph.
+remediated through `@grafana/react-detect` 0.7.2 and a scoped
+`snyk-nodejs-lockfile-parser` 2.10.3 override, whose declared range resolves patched `uuid`
+11.1.1. The `react:detect` and SBOM checks verify the compatible resolved graph.
 
 ## Supported versions
 
