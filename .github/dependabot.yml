@@ -20,6 +20,16 @@ updates:
       - dependency-name: 'eslint'
         update-types:
           - 'version-update:semver-major'
+      # Keep the development type surface aligned with the Node versions
+      # supported by @grafana/plugin-e2e.
+      - dependency-name: '@types/node'
+        update-types:
+          - 'version-update:semver-major'
+      # This pin keeps legacy minimatch@3 consumers on the reviewed 1.x line
+      # without reintroducing a vulnerable nested brace-expansion release.
+      - dependency-name: 'brace-expansion'
+        update-types:
+          - 'version-update:semver-major'
     groups:
       unit-test:
         patterns:
