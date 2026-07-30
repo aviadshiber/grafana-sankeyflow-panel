@@ -14,6 +14,12 @@ updates:
     commit-message:
       prefix: 'chore'
       include: 'scope'
+    # eslint-plugin-react does not support ESLint 10 yet. Keep ESLint on the
+    # latest 9.x release until its peer range includes the next major.
+    ignore:
+      - dependency-name: 'eslint'
+        update-types:
+          - 'version-update:semver-major'
     groups:
       unit-test:
         patterns:
