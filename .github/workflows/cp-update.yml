@@ -22,6 +22,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: grafana/plugin-actions/create-plugin-update@244c3bc9c6eb94bc1dd6458ade2462499bbf0f5b # create-plugin-update/v2.0.1
+      - uses: grafana/plugin-actions/create-plugin-update@b82357e85d512c678416146ca4e9f8672bd108da # create-plugin-update/v2.0.2
         with:
           token: ${{ github.token }}
