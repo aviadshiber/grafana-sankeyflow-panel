@@ -12,22 +12,23 @@ Do not place secrets in panel JSON, screenshots, examples, issue reports, or log
 
 ## Upstream development advisories
 
-The release process tracks two upstream dependency constraints that do not ship code inside the
-SankeyFlow plugin archive:
+The release process keeps the following narrowly scoped, time-bounded exceptions in
+`osv-scanner.toml`. They must be reviewed before each release and removed as soon as a compatible
+upstream update is available or the panel begins to exercise an affected path:
 
 - `brace-expansion` ([GHSA-mh99-v99m-4gvg](https://github.com/advisories/GHSA-mh99-v99m-4gvg))
-  is pulled in by lint and test tooling through legacy `minimatch` versions. The patched
-  `brace-expansion` major is not API-compatible with those consumers, so the lockfile retains
-  `1.1.17` through an explicit development pin until the parent tools migrate. This also prevents
-  routine lockfile refreshes from presenting another vulnerable 1.x release as an upgrade.
-  SankeyFlow does not pass user-controlled glob expressions to this development-only dependency.
+  is reached only through legacy `minimatch` consumers in lint and test tooling. The patched major
+  is outside those consumers' declared API range. This dependency tree is not bundled into the
+  plugin, and panel code does not accept user-controlled glob expressions.
 - `react-router` ([GHSA-wrjc-x8rr-h8h6](https://github.com/advisories/GHSA-wrjc-x8rr-h8h6) and
   [GHSA-337j-9hxr-rhxg](https://github.com/advisories/GHSA-337j-9hxr-rhxg)) is transitive to
-  `@grafana/ui`. Grafana provides `@grafana/ui` at runtime, and webpack externalizes it from the
-  plugin archive. SankeyFlow does not use React Router navigation or server-side hydration.
+  `@grafana/ui`. Webpack externalizes React Router and Grafana provides it at runtime; SankeyFlow
+  does not import it, use navigation, or use server-side hydration.
 
-These constraints are reviewed before each release. They must not be allowlisted if a compatible
-upstream fix becomes available or if application code begins to exercise an affected path.
+The UUID advisory [GHSA-w5hq-g745-h8pq](https://github.com/advisories/GHSA-w5hq-g745-h8pq) is
+remediated through `@grafana/react-detect` 0.7.2 and a scoped `uuid` 11.1.1 override for its
+`snyk-nodejs-lockfile-parser` dependency. That parser uses only the retained `uuid.v4` API; the
+`react:detect` check verifies the compatible resolved graph.
 
 ## Supported versions
 

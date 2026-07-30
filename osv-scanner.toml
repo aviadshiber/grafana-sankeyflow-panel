@@ -1,0 +1,14 @@
+[[IgnoredVulns]]
+id = "GHSA-mh99-v99m-4gvg"
+ignoreUntil = 2026-10-30
+reason = "Only reached by legacy minimatch in lint/test tooling; the compatible patched major is outside its declared range. Tooling is not bundled into the plugin, and panel code passes no user-controlled glob expressions."
+
+[[IgnoredVulns]]
+id = "GHSA-wrjc-x8rr-h8h6"
+ignoreUntil = 2026-10-30
+reason = "Transitive through @grafana/ui only. Webpack externalizes react-router, Grafana supplies it at runtime, and SankeyFlow imports neither navigation nor SSR hydration APIs."
+
+[[IgnoredVulns]]
+id = "GHSA-337j-9hxr-rhxg"
+ignoreUntil = 2026-10-30
+reason = "Transitive through @grafana/ui only. Webpack externalizes react-router, Grafana supplies it at runtime, and SankeyFlow imports neither navigation nor SSR hydration APIs."
