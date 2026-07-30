@@ -30,7 +30,7 @@ The published plugin ID is a public identifier and should be treated as immutabl
 ## First public submission
 
 - [ ] Review and merge only dependency updates that pass the protected branch gate.
-- [ ] Resolve or document the upstream transitive Dependabot advisories:
+- [x] Resolve or document the upstream transitive Dependabot advisories:
   `brace-expansion` from development tooling and `react-router` from `@grafana/ui`.
 - [ ] Confirm `package.json`, `CHANGELOG.md`, and release notes all describe version `0.1.0`.
 - [ ] Run the complete release-candidate suite:
