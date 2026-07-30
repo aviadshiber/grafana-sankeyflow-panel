@@ -25,6 +25,11 @@ updates:
       - dependency-name: '@types/node'
         update-types:
           - 'version-update:semver-major'
+      # TypeScript 7 is not yet supported by @typescript-eslint 8.x.
+      # Remove this rule once its peer range includes TypeScript 7.
+      - dependency-name: 'typescript'
+        versions:
+          - '>=7.0.0 <8.0.0'
     groups:
       unit-test:
         patterns:
