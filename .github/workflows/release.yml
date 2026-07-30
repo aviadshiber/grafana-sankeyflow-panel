@@ -56,14 +56,14 @@ jobs:
       - name: Generate CycloneDX SBOM
         run: npm run sbom
 
-      - uses: grafana/plugin-actions/build-plugin@62c2d322b176c9b104fae6b300029e08d0a0ee8e # build-plugin/v1.0.2
+      - uses: grafana/plugin-actions/build-plugin@8b12a2d6fa5fc0939a6bf75905453d4b505ef29a # build-plugin/v1.2.0
         with:
           # GRAFANA_ACCESS_POLICY_TOKEN is an environment secret. The official
-          # action exposes it only to its nested signing step.
+          # action exposes it only to its nested signing step. It is intentionally
+          # absent for the first public submission and added after Grafana grants
+          # this plugin a signature level.
           policy_token: ${{ secrets.GRAFANA_ACCESS_POLICY_TOKEN }}
           attestation: true
-          use_changelog_generator: true
-          token: ${{ github.token }}
 
       - name: Attach SBOM to draft release
         env:

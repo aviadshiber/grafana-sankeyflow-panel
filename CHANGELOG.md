@@ -4,6 +4,10 @@ All notable changes to SankeyFlow are recorded here. Entries describe the public
 
 ## Unreleased
 
+No changes yet.
+
+## 0.1.0 - 2026-07-30
+
 ### Added
 
 - Typed edge, path, and automatic input modes with configurable field mappings and aggregation.
