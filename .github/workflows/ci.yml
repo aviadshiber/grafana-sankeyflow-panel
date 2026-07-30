@@ -221,7 +221,7 @@ jobs:
           url: http://localhost:3000/login
 
       - name: Install Playwright Browsers
-        run: npm exec playwright install chromium --with-deps
+        run: ./node_modules/.bin/playwright install chromium --with-deps
 
       - name: Run Playwright tests
         id: run-tests
