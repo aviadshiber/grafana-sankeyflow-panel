@@ -1,4 +1,5 @@
 import { sankey, sankeyCenter, sankeyJustify, sankeyLeft, sankeyRight } from 'd3-sankey';
+import * as circularD3Module from 'd3-sankey-circular';
 import type { SankeyGraph, SankeyGraphLink, SankeyGraphNode } from '../data/model';
 import type { LayoutDirection, LayoutOptions, NodeAlignment } from '../types';
 
@@ -94,7 +95,7 @@ interface CircularSankeyModule {
 
 // d3-sankey-circular does not publish TypeScript declarations. Keep its dynamic
 // boundary private so consumers of this adapter remain fully typed.
-const circularD3 = require('d3-sankey-circular') as CircularSankeyModule;
+const circularD3 = circularD3Module as CircularSankeyModule;
 
 /**
  * Computes a renderer-neutral Sankey scene. The source graph is never mutated.
