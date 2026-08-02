@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/aviadshiber/grafana-sankeyflow-panel/actions/workflows/ci.yml/badge.svg)](https://github.com/aviadshiber/grafana-sankeyflow-panel/actions/workflows/ci.yml)
 [![Security](https://github.com/aviadshiber/grafana-sankeyflow-panel/actions/workflows/security.yml/badge.svg)](https://github.com/aviadshiber/grafana-sankeyflow-panel/actions/workflows/security.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/aviadshiber/grafana-sankeyflow-panel/badge)](https://scorecard.dev/viewer/?uri=github.com/aviadshiber/grafana-sankeyflow-panel)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Grafana](https://img.shields.io/badge/Grafana-%3E%3D11.5.2-F46800?logo=grafana)](https://grafana.com/)
 
@@ -74,6 +75,7 @@ The panel maps fields explicitly where possible; `dataMode: auto` detects edge o
 - [Deployment](docs/deployment.md)
 - [Development and testing](docs/development.md)
 - [Support](docs/support.md)
+- [Security posture and accepted limitations](docs/security-posture.md)
 - [Roadmap](ROADMAP.md)
 
 ## Community and governance

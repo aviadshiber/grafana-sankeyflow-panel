@@ -34,3 +34,7 @@ remediated through `@grafana/react-detect` 0.7.2 and a scoped
 ## Supported versions
 
 Security fixes are prioritized for the latest release and the currently supported Grafana compatibility tiers. Alpha releases may receive fixes without a backport guarantee.
+
+Automated security scores are point-in-time signals rather than warranties. Repository controls,
+accepted limitations, and their review triggers are recorded in
+[Security posture and accepted limitations](docs/security-posture.md).

@@ -10,6 +10,11 @@ SankeyFlow is maintained as an open-source Grafana panel. Decisions are made in 
 
 Maintainers may delegate release, documentation, or security responsibilities. Current ownership is listed in `CODEOWNERS`.
 
+`@aviadshiber` is currently the sole repository owner and CODEOWNER. Only that account may merge
+pull requests. Until an independent trusted reviewer is added, the project does not represent its
+mandatory automated checks as human code review; the limitation and revisit trigger are documented
+in [the security posture](docs/security-posture.md).
+
 ## Decision process
 
 Routine changes are decided through pull-request review. Changes to the public data contract, compatibility tiers, governance, or security policy should be discussed in an issue or design-focused pull request before implementation. When consensus is not reached, maintainers make the final decision and document the rationale.
