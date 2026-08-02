@@ -86,6 +86,14 @@ Never commit the signing token, place it in panel configuration, or print it in 
 
 ## OSS launch follow-up
 
+- [ ] Sign in to `bestpractices.dev` with the `aviadshiber` GitHub account, register this repository,
+      complete only verifiable OpenSSF Best Practices claims, and add the issued badge.
+- [ ] Re-run OpenSSF Scorecard after 2026-10-27, when the repository becomes old enough for the
+      `Maintained` check to evaluate normal activity.
+- [ ] Add an independent trusted reviewer before requiring one approval and CODEOWNER review; do
+      not deadlock owner-authored pull requests while `@aviadshiber` is the sole maintainer.
+- [ ] Reassess the generated `.config/Dockerfile` image pin when Grafana plugin tools updates its
+      managed template.
 - [ ] Triage the initial Dependabot pull requests and close superseded updates.
 - [ ] Add a sponsorship link to `plugin.json` if project funding is enabled.
 - [ ] Publish the roadmap and label suitable first issues.

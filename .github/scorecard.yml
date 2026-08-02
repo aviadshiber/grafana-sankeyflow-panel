@@ -1,0 +1,16 @@
+# Maintainer context for OpenSSF Scorecard checks whose automated result does
+# not fully represent this repository. Details and review dates are documented
+# in docs/security-posture.md.
+annotations:
+  - checks:
+      - code-review
+    reasons:
+      - reason: not-applicable
+  - checks:
+      - maintained
+    reasons:
+      - reason: not-applicable
+  - checks:
+      - pinned-dependencies
+    reasons:
+      - reason: test-data
