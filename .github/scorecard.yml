@@ -3,6 +3,10 @@
 # in docs/security-posture.md.
 annotations:
   - checks:
+      - branch-protection
+    reasons:
+      - reason: remediated
+  - checks:
       - code-review
     reasons:
       - reason: not-applicable
