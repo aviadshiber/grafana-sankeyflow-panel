@@ -86,8 +86,9 @@ Never commit the signing token, place it in panel configuration, or print it in 
 
 ## OSS launch follow-up
 
-- [ ] Sign in to `bestpractices.dev` with the `aviadshiber` GitHub account, register this repository,
-      complete only verifiable OpenSSF Best Practices claims, and add the issued badge.
+- [ ] Sign in to [OpenSSF Best Practices project 13928](https://www.bestpractices.dev/projects/13928)
+      with the `aviadshiber` GitHub account, complete only verifiable claims, and add the badge after
+      it reaches passing status.
 - [ ] Re-run OpenSSF Scorecard after 2026-10-27, when the repository becomes old enough for the
       `Maintained` check to evaluate normal activity.
 - [ ] Add an independent trusted reviewer before requiring one approval and CODEOWNER review; do
